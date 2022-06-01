@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#define Size 3
+#define Size 8
 #define N Size+2
 
 
@@ -134,17 +134,16 @@ void do_step(int matrix[N][N]){
 
             if(it_is == Black){
 
-                //Right, above and upper-right are white
-                if(right_is(matrix, pos, White) && up_is(matrix, pos, White) && upper_right_is(matrix, pos, White))
-                    should_become = 1;
-                
+                //Right, above and upper-right are White or Goal
+                if((right_is(matrix, pos, White) || right_is(matrix, pos, Goal)) && (up_is(matrix, pos, White) || up_is(matrix, pos, Goal)) && (upper_right_is(matrix, pos, White) || upper_right_is(matrix, pos, Goal)))
+                    should_become = White;
 
             }
-            else if(it_is == White){
+            else {
 
                 //Right and above are black
                 if(right_is(matrix, pos, Black) && up_is(matrix, pos, Black))
-                    should_become = 0;
+                    should_become = Black;
                 else
                     if(has_edge_of_type(matrix, pos, Goal))
                         should_become = Goal;
@@ -180,21 +179,32 @@ int main(int argc, char **argv) {
   //                     {0, 1, 0, 2, 0},
   //                     {0, 0, 0, 0, 0}};
 
-  int matrix[N][N] = {{0, 0, 0, 0, 0},
-                      {0, 2, 1, 1, 0},
-                      {0, 1, 0, 1, 0},
-                      {0, 1, 1, 1, 0},
-                      {0, 0, 0, 0, 0}};
+//   int matrix[N][N] = {{0, 0, 0, 0, 0},
+//                       {0, 2, 1, 1, 0},
+//                       {0, 1, 0, 1, 0},
+//                       {0, 1, 1, 1, 0},
+//                       {0, 0, 0, 0, 0}};
+                      
+  int matrix[N][N] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                      {0, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+                      {0, 1, 0, 0, 0, 1, 1, 0, 2, 0},
+                      {0, 1, 0, 0, 0, 0, 1, 0, 1, 0},
+                      {0, 1, 1, 0, 1, 0, 1, 1, 1, 0},
+                      {0, 0, 1, 0, 1, 1, 1, 0, 0, 0},
+                      {0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+                      {0, 0, 1, 0, 1, 1, 0, 0, 1, 0},
+                      {0, 1, 1, 1, 1, 1, 0, 0, 1, 0},
+                      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
   
   int num_steps = 0;
   printf("Initial matrix \n");
   print_matrix(matrix);
 
-  while(matrix[3][1] != Goal && num_steps < 1000){
+  while(matrix[N-2][1] != Goal && num_steps < 1000){
 
     do_step(matrix);
-    printf("After %d° step \n", num_steps);
+    printf("After %d° step \n", num_steps + 1);
     print_matrix(matrix);
 
     num_steps++;
