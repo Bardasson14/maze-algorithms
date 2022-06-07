@@ -173,7 +173,7 @@ void parallel_step(int matrix[N][N])
     int write_into[N][N] = {0};
     int thread_id, n_threads;
 
-#pragma omp parallel for schedule(dynamic) private(n_threads, thread_id) // collapse(2)
+    #pragma omp parallel for schedule(dynamic) private(n_threads, thread_id) // collapse(2)
 
     for (int i = 1; i < N - 1; i++)
     {
