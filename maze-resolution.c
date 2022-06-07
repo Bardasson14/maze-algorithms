@@ -100,6 +100,17 @@ void copy_matrix(int matrix[N][N], int copy_to[N][N])
     }
 }
 
+void make_zeros(int matrix[N][N])
+{
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            matrix[i][j] = 0;
+        }
+    }
+}
+
 void print_matrix(int matrix[N][N])
 {
 
@@ -107,7 +118,7 @@ void print_matrix(int matrix[N][N])
     {
         for (int j = 0; j < N; j++)
         {
-            printf("%d ", matrix[i][j]);
+            printf("%d", matrix[i][j]);
         }
 
         printf("\n");
@@ -168,30 +179,42 @@ void do_step(int matrix[N][N])
 }
 
 // Lê matrix
-void parallel_step(int matrix[N][N])
+void parallel_step(int matrix[N][N], int write_into[N][N])
 {
-    int write_into[N][N] = {0};
     int thread_id, n_threads;
-
-#pragma omp parallel for schedule(dynamic) private(n_threads, thread_id) // collapse(2)
-
-    for (int i = 1; i < N - 1; i++)
+    printf("\nSTARTING STEP\n");
+    fflush(stdout);
+    #pragma omp parallel shared(matrix, write_into) // collapse(2)
     {
-        for (int j = 1; j < N - 1; j++)
+        int id = omp_get_thread_num();
+        int i = 1, j = 1;
+        #pragma omp for schedule(auto) private(i, j)
+        for (i = 1; i < N - 1; i++)
         {
+            for (j = 1; j < N - 1; j++)
+            {
 
-            thread_id = omp_get_thread_num();
-            n_threads = omp_get_num_threads();
+                //thread_id = omp_get_thread_num();
+                // n_threads = omp_get_num_threads();
 
-            // printf("\nCHECAGEM FEITA NA THREAD: %d - [%d][%d]\n", thread_id, i, j);
-            // printf("TOTAL DE THREADS: %d\n\n", n_threads);
+                //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
+                // printf("\nmatrix[%d][%d]: %d\n", i, j, matrix[i][j]);
+                // printf("\nwrite_into[%d][%d]: ", i, j);
+                // printf("%d\n", write_into[i][j]);
+                // fflush(stdin);
 
-            Vector2 pos;
-            pos.x = i;
-            pos.y = j;
+                Vector2 pos;
+                pos.x = i;
+                pos.y = j;
 
-            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+                write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+            }
         }
+        //printf("\nSTARTING COPY\n");
+        copy_matrix(write_into, matrix);
+        
+        // printf("\nAuto (%d): %d\n", id, nComputedIndices);
+        // fflush(stdout);
     }
-    copy_matrix(write_into, matrix);
+        
 }
