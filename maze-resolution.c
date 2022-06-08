@@ -2,6 +2,7 @@
 #include <omp.h>
 #include "constants.h"
 #include "vector2.c"
+#include "mpi.h"
 
 // Matrix definitions:
 //  The matrix are [N+2][N+2] cause the borders must be black
@@ -159,8 +160,8 @@ int evaluate_step(int matrix[N][N], Vector2 pos, int it_is)
     return it_is;
 }
 
-// Lê matrix
-void do_step(int matrix[N][N])
+// Lê matrix sequencial
+void seq_step(int matrix[N][N])
 {
     int write_into[N][N] = {0};
 
@@ -178,12 +179,11 @@ void do_step(int matrix[N][N])
     copy_matrix(write_into, matrix);
 }
 
-// Lê matrix
-void parallel_step(int matrix[N][N], int write_into[N][N])
+// Lê matrix OpenMP
+void omp_step(int matrix[N][N])
 {
+    int write_into[N][N] = {0};
     int thread_id, n_threads;
-    printf("\nSTARTING STEP\n");
-    fflush(stdout);
     #pragma omp parallel shared(matrix, write_into) // collapse(2)
     {
         int id = omp_get_thread_num();
@@ -198,10 +198,6 @@ void parallel_step(int matrix[N][N], int write_into[N][N])
                 // n_threads = omp_get_num_threads();
 
                 //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
-                // printf("\nmatrix[%d][%d]: %d\n", i, j, matrix[i][j]);
-                // printf("\nwrite_into[%d][%d]: ", i, j);
-                // printf("%d\n", write_into[i][j]);
-                // fflush(stdin);
 
                 Vector2 pos;
                 pos.x = i;
@@ -212,9 +208,52 @@ void parallel_step(int matrix[N][N], int write_into[N][N])
         }
         //printf("\nSTARTING COPY\n");
         copy_matrix(write_into, matrix);
-        
-        // printf("\nAuto (%d): %d\n", id, nComputedIndices);
-        // fflush(stdout);
     }
-        
+}
+
+// Lê matrix OpenMPI
+void mpi_step(int matrix[N][N])
+{
+    // Inicia MPI
+    int initialized, finalized, rank, size;
+    MPI_Initialized(&initialized);
+    if (!initialized)
+        MPI_Init(NULL, NULL);
+
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    int write_into[N][N] = {0};
+
+    for (int i = 1; i < N - 1; i++)
+    {
+        for (int j = 1; j < N - 1; j++)
+        {
+
+            //thread_id = omp_get_thread_num();
+            // n_threads = omp_get_num_threads();
+
+            //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
+
+            Vector2 pos;
+            pos.x = i;
+            pos.y = j;
+
+            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+        }
+    }
+
+    // Trabalhadores enviam matrizes e
+    // Mestre junta na matriz temporária
+    // (pega os 1s de cada matriz e coloca 
+    //  em uma matriz previamente zerada)
+    
+
+    // Espera matrix temporária estar completa
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 0){
+        //printf("\nSTARTING COPY\n");
+        copy_matrix(write_into, matrix);
+    }
 }

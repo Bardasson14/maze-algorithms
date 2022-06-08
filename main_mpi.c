@@ -5,14 +5,6 @@
 
 int main(int argc, char **argv)
 {
-
-    int n_threads;
-
-    printf("NÚMERO DE THREADS:\n");
-    scanf("%d", &n_threads);
-
-    omp_set_num_threads(n_threads);
-
     int (*matrix)[N] = malloc(sizeof(int[N][N]));
     getPatternMaze(matrix);
 
@@ -20,7 +12,7 @@ int main(int argc, char **argv)
     printf("Maze with size: %d\n", Size);
     //printf("Initial matrix \n");
     //print_matrix(matrix);
-    double startOMP = omp_get_wtime();
+    //double starttime = MPI_Wtime();
     while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
     {
         if (DEBUG){
@@ -28,16 +20,16 @@ int main(int argc, char **argv)
             int choice = -1;
             scanf(" %d", &choice);
         }
-        omp_step(matrix);
+        mpi_step(matrix);
         //printf("After %d° step \n", num_steps + 1);
         //print_matrix(matrix);
         num_steps++;
     }
 
-    double endOMP = omp_get_wtime();
+    //double endtime = MPI_Wtime();
 
     //printf("Final matrix: \n");
     //print_matrix(matrix);
-    printf("ELAPSED TIME(OMP) %f sec\n", endOMP - startOMP);
+    //printf("ELAPSED TIME(OMP) %f sec\n", endtime - starttime);
     printf("TOTAL STEPS: %d\n", num_steps);
 }
