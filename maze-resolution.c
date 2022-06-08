@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
-#include <mpi.h>
+#include "mpi.h"
 #include "constants.h"
 #include "vector2.c"
 

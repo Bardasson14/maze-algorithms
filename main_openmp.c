@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
-#include "pattern-1024.c"
-#include "pattern-2048.c"
 
 int main(void)
 {
@@ -16,7 +14,8 @@ int main(void)
     omp_set_num_threads(n_threads);
 
     int (*matrix)[N] = malloc(sizeof(int[N][N]));
-    getPatternMaze(matrix);
+    copy_maze(maze_sizeof_1024, matrix);
+
 
     int num_steps = 0;
     printf("Maze with size: %d\n", Size);

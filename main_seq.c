@@ -2,23 +2,23 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
-#include "pattern-1024.c"
-#include "pattern-2048.c"
 
 int main(int argc, char **argv)
 {
 
   int (*matrix)[N] = malloc(sizeof(int[N][N]));
-  getPatternMaze(matrix);
+  copy_maze(maze_sizeof_1024, matrix);
+
+  //getPatternMaze(matrix); - TODO: ajustar
 
   int num_steps = 0;
   printf("Maze with size: %d\n", Size);
   //printf("Initial matrix \n");
   //print_matrix(matrix);
 
-  double start = omp_get_wtime();
+  int start = clock();
 
-  while (maze_sizeof_1024[N - 3][1] != Goal && num_steps < MAX_STEPS)
+  while (maze_sizeof_1024[N - 2][1] != Goal && num_steps < MAX_STEPS)
   {
     if (DEBUG){
         printf("Continue? (0 == exit)\n\n");
