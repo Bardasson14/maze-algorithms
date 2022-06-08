@@ -211,67 +211,41 @@ void omp_step(int matrix[N][N])
     }
 }
 
-// Lê matrix OpenMPI
-void mpi_step(int matrix[N][N])
-{
-    // Inicia MPI
-    int initialized, finalized, rank, size;
-    MPI_Initialized(&initialized);
-    if (!initialized)
-        MPI_Init(NULL, NULL);
-
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    int write_into[N][N] = {0};
-
-    for (int i = 1; i < N - 1; i++)
-    {
-        for (int j = 1; j < N - 1; j++)
-        {
-
-            //thread_id = omp_get_thread_num();
-            // n_threads = omp_get_num_threads();
-
-            //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
-
-            Vector2 pos;
-            pos.x = i;
-            pos.y = j;
-
-            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
-        }
-    }
-    copy_matrix(write_into, matrix);
-}
-
-
 
 // Lê matrix
 void mpi_step(int matrix[N][N])
 {
-    int write_into[N][N] = {0};
-    int thread_id, n_threads;
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &thread_id);
+    int write_into[N][N] = {0};
+    int my_rank, n_threads;
+
+
+    MPI_Init(NULL, NULL);
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &n_threads);
+
+    int partial_size = N / n_threads;   // Cada processo recebe N/n_threads elementos
+    int partial_array[partial_size];
 
 //    MPI_Bcast(&matrix, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Scatter(matrix, partial_size, MPI_INT, partial_array, partial_size, MPI_INT, 0, MPI_COMM_WORLD);
 
+    //for(int i = 0; i < partial_size; i++)
+        //printf("array[i] = %d \n", partial_array[i]);
 
-    for (int i = thread_id; i < (N - 1); i += n_threads)
-    {
-        for (int j = 1; j < N - 1; j++)
-        {
+    // for (int i = my_rank; i < (N - 1); i += n_threads)
+    // {
+    //     for (int j = 1; j < N - 1; j++)
+    //     {
 
-            Vector2 pos;
-            pos.x = i;
-            pos.y = j;
+    //         Vector2 pos;
+    //         pos.x = i;
+    //         pos.y = j;
 
-            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
-        }
-    }
+    //         write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+    //     }
+    // }
 
     // Trabalhadores enviam matrizes e
     // Mestre junta na matriz temporária
@@ -282,10 +256,10 @@ void mpi_step(int matrix[N][N])
     // Espera matrix temporária estar completa
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank == 0){
+    if (my_rank == 0){
         //printf("\nSTARTING COPY\n");
         copy_matrix(write_into, matrix);
     }
 
-
+    MPI_Finalize();
 }
