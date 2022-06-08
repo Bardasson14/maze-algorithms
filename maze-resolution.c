@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
+#include <mpi.h>
 #include "constants.h"
 #include "vector2.c"
 
@@ -168,7 +169,7 @@ void do_step(int matrix[N][N])
 }
 
 // Lê matrix
-void parallel_step(int matrix[N][N])
+void mp_step(int matrix[N][N])
 {
     int write_into[N][N] = {0};
     int thread_id, n_threads;
@@ -193,5 +194,36 @@ void parallel_step(int matrix[N][N])
             write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
         }
     }
+    copy_matrix(write_into, matrix);
+}
+
+
+
+// Lê matrix
+void mpi_step(int matrix[N][N])
+{
+    int write_into[N][N] = {0};
+    int thread_id, n_threads;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &thread_id);
+    MPI_Comm_size(MPI_COMM_WORLD, &n_threads);
+
+//    MPI_Bcast(&matrix, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(matrix, partial_size, MPI_INT, partial_array, partial_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+
+    for (int i = thread_id; i < (N - 1); i += n_threads)
+    {
+        for (int j = 1; j < N - 1; j++)
+        {
+
+            Vector2 pos;
+            pos.x = i;
+            pos.y = j;
+
+            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+        }
+    }
+
     copy_matrix(write_into, matrix);
 }

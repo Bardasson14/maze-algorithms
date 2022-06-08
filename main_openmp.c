@@ -17,9 +17,9 @@ int main(void)
 
     double start = omp_get_wtime();
 
-    while (maze_sizeof_1024[N - 3][1] != Goal && num_steps < MAX_STEPS)
+    while (maze_sizeof_1024[N - 2][1] != Goal && num_steps < MAX_STEPS)
     {
-        parallel_step(maze_sizeof_1024);
+        mp_step(maze_sizeof_1024);
         num_steps++;
     }
 
