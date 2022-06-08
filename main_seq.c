@@ -14,9 +14,9 @@ int main(int argc, char **argv)
   //printf("Initial matrix \n");
   //print_matrix(matrix);
 
-  int start = clock();
+  double start = omp_get_wtime();
 
-  while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
+  while (maze_sizeof_1024[N - 3][1] != Goal && num_steps < MAX_STEPS)
   {
     if (DEBUG){
         printf("Continue? (0 == exit)\n\n");
