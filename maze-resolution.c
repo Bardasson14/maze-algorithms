@@ -219,9 +219,6 @@ void mpi_step(int matrix[N][N])
     int write_into[N][N] = {0};
     int my_rank, n_threads;
 
-
-    MPI_Init(NULL, NULL);
-
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &n_threads);
 
