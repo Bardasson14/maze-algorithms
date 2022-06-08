@@ -1,4 +1,6 @@
 #include <time.h>
+#include <stdlib.h>
+#include "pattern_controller.c"
 #include "maze-resolution.c"
 #include "pattern-1024.c"
 #include "pattern-2048.c"
@@ -6,25 +8,38 @@
 int main(void)
 {
 
-    int thread_id, n_threads, size;
+    int n_threads;
 
     printf("NÚMERO DE THREADS:\n");
     scanf("%d", &n_threads);
 
     omp_set_num_threads(n_threads);
 
+    int (*matrix)[N] = malloc(sizeof(int[N][N]));
+    getPatternMaze(matrix);
+
     int num_steps = 0;
-
-    double start = omp_get_wtime();
-
-    while (maze_sizeof_1024[N - 3][1] != Goal && num_steps < MAX_STEPS)
+    printf("Maze with size: %d\n", Size);
+    //printf("Initial matrix \n");
+    //print_matrix(matrix);
+    double startOMP = omp_get_wtime();
+    while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
     {
-        parallel_step(maze_sizeof_1024);
+        if (DEBUG){
+            printf("Continue? (0 == exit)\n\n");
+            int choice = -1;
+            scanf(" %d", &choice);
+        }
+        omp_step(matrix);
+        //printf("After %d° step \n", num_steps + 1);
+        //print_matrix(matrix);
         num_steps++;
     }
 
-    double end = omp_get_wtime();
+    double endOMP = omp_get_wtime();
 
-    printf("TIME ELAPSED: %lfs", end - start);
-
+    //printf("Final matrix: \n");
+    //print_matrix(matrix);
+    printf("ELAPSED TIME(OMP) %f sec\n", endOMP - startOMP);
+    printf("TOTAL STEPS: %d\n", num_steps);
 }
