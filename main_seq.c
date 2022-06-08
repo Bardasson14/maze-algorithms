@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
+#include "pattern-1024.c"
+#include "pattern-2048.c"
 
 int main(int argc, char **argv)
 {
@@ -14,9 +16,9 @@ int main(int argc, char **argv)
   //printf("Initial matrix \n");
   //print_matrix(matrix);
 
-  int start = clock();
+  double start = omp_get_wtime();
 
-  while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
+  while (maze_sizeof_1024[N - 3][1] != Goal && num_steps < MAX_STEPS)
   {
     if (DEBUG){
         printf("Continue? (0 == exit)\n\n");
@@ -34,6 +36,7 @@ int main(int argc, char **argv)
 
   //printf("Final matrix: \n");
   //print_matrix(matrix);
+
 
   printf("ELAPSED TIME: %lf s\n", cpu_time_used);
   printf("TOTAL STEPS: %d\n", num_steps);

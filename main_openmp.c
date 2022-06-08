@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
+#include "pattern-1024.c"
+#include "pattern-2048.c"
 
-int main(int argc, char **argv)
+int main(void)
 {
 
     int n_threads;
