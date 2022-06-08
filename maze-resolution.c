@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <omp.h>
+#include "mpi.h"
 #include "constants.h"
 #include "vector2.c"
-#include "mpi.h"
 
 // Matrix definitions:
 //  The matrix are [N+2][N+2] cause the borders must be black
