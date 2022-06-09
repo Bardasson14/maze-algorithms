@@ -210,7 +210,7 @@ void omp_step(int matrix[N][N])
 }
 
 // Lê matrix OpenMPI
-double mpi_step(int matrix[N][N])
+void mpi_step(int matrix[N][N])
 {
     // Inicia MPI
     int initialized, finalized, rank, size;
@@ -221,12 +221,6 @@ double mpi_step(int matrix[N][N])
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    double starttime, endtime, steptime = 0;
-    // Sincroniza relógio
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (rank == 0){
-        starttime = MPI_Wtime();
-    }
     
     int write_into[N][N] = {0};
 
@@ -258,14 +252,5 @@ double mpi_step(int matrix[N][N])
         copy_matrix(write_into, matrix);
     }
 
-    // Sincroniza relógio
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (rank == 0){
-        endtime = MPI_Wtime();
-        steptime = endtime - starttime;
-        // Garante que o dado não vai ser sobrescrito por outro valor
-        MPI_Bcast(&steptime, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    }
-
-    return steptime;
+    return;
 }
