@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
-#include <mpi.h>
+#include "mpi.h"
 #include "constants.h"
 #include "vector2.c"
 
@@ -212,16 +212,9 @@ void omp_step(int matrix[N][N])
 // Lê matrix OpenMPI
 void mpi_step(int matrix[N][N])
 {
-    // Inicia MPI
-    int initialized, finalized, rank, size;
-    MPI_Initialized(&initialized);
-    if (!initialized)
-        MPI_Init(NULL, NULL);
+	// MPI_Comm_size(MPI_COMM_WORLD, &size);
+	// MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    
     int write_into[N][N] = {0};
 
     for (int i = 1; i < N - 1; i++)

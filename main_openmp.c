@@ -14,7 +14,8 @@ int main(void)
     omp_set_num_threads(n_threads);
 
     int (*matrix)[N] = malloc(sizeof(int[N][N]));
-    getPatternMaze(matrix);
+    copy_maze(maze_sizeof_1024, matrix);
+
 
     int num_steps = 0;
     printf("Maze with size: %d\n", Size);
