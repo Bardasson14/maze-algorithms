@@ -15,6 +15,7 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     double total_time = 0;
+    double partial_time = 0;
     int num_steps = 0;
     int (*matrix)[N];
 
@@ -40,12 +41,13 @@ int main(int argc, char **argv)
             }
         }
     
-        mpi_step(matrix);
+        partial_time = mpi_step(matrix);
 
         if (rank == 0){
             // recebe mensagem com o tempo tomado
             printf("After %d° step \n", num_steps + 1);
             print_matrix(matrix);
+            total_time += partial_time;
             num_steps++;
         }
     }
