@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <omp.h>
+#include <mpi.h>
 #include "constants.h"
 #include "vector2.c"
-#include "mpi.h"
 
 // Matrix definitions:
 //  The matrix are [N+2][N+2] cause the borders must be black
@@ -90,7 +90,6 @@ int has_edge_of_type(int matrix[N][N], Vector2 pos, int neighbour_type)
 
 void copy_matrix(int matrix[N][N], int copy_to[N][N])
 {
-
     for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++)
@@ -114,7 +113,6 @@ void make_zeros(int matrix[N][N])
 
 void print_matrix(int matrix[N][N])
 {
-
     for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++)
@@ -186,7 +184,7 @@ void omp_step(int matrix[N][N])
     int thread_id, n_threads;
     #pragma omp parallel shared(matrix, write_into) // collapse(2)
     {
-        int id = omp_get_thread_num();
+        //int id = omp_get_thread_num();
         int i = 1, j = 1;
         #pragma omp for schedule(auto) private(i, j)
         for (i = 1; i < N - 1; i++)
@@ -223,6 +221,13 @@ void mpi_step(int matrix[N][N])
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    double starttime, endtime;
+    // Sincroniza relógio
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank == 0){
+        starttime = MPI_Wtime();
+    }
+    
     int write_into[N][N] = {0};
 
     for (int i = 1; i < N - 1; i++)
@@ -233,27 +238,32 @@ void mpi_step(int matrix[N][N])
             //thread_id = omp_get_thread_num();
             // n_threads = omp_get_num_threads();
 
-            //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
+            //printf("\nCHECAGEM FEITA NA THREAD: %d\n", rank);
 
             Vector2 pos;
             pos.x = i;
             pos.y = j;
 
             write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+
         }
     }
-
-    // Trabalhadores enviam matrizes e
-    // Mestre junta na matriz temporária
-    // (pega os 1s de cada matriz e coloca 
-    //  em uma matriz previamente zerada)
-    
 
     // Espera matrix temporária estar completa
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 0){
-        //printf("\nSTARTING COPY\n");
+        // printf("\nSTARTING COPY %d\n", rank);
+        // fflush(stdin);
         copy_matrix(write_into, matrix);
     }
+
+    // Sincroniza relógio
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank == 0){
+        double endtime = MPI_Wtime();
+    }
+
+    // Reduce tempo
+    return;
 }
