@@ -23,9 +23,10 @@ int main(int argc, char **argv)
     int num_steps = 0;
     int stopSteps = 0;
     int totalRows;
-    int (*matrix)[N];///[N][N];
-    int **dataChunk;
+    int (*matrix)[N];
+    int *dataChunk;
     int payloadBoundaries[2][2];
+    int nElem;
 
     matrix = (int (*)[N])malloc(sizeof(*matrix)*N);
 
@@ -36,20 +37,22 @@ int main(int argc, char **argv)
         num_steps = 0;
 
         for (int i=1; i<size;i++) {
+            printf("MOCKED RANK: %d\n", i);
             calculatePayloadBoundaries(i, size-1, payloadBoundaries);
-            int totalRows = payloadBoundaries[1][0] - payloadBoundaries[0][0];
-            dataChunk = mallocContiguousMatrix(totalRows);
-            fillChunk(matrix, dataChunk, i, size-1);
-            MPI_Send(&totalRows, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&dataChunk[0][0], totalRows*N, MPI_INT, i, 0, MPI_COMM_WORLD);
+            fillChunk(matrix, dataChunk, i, size-1, payloadBoundaries);
+            //MPI_Send(&totalRows, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            //MPI_Send(&dataChunk[0][0], totalRows*N, MPI_INT, i, 0, MPI_COMM_WORLD);
+            free(dataChunk);
         }
     }
-
+/*
     // Sincroniza relógio
     MPI_Barrier(MPI_COMM_WORLD);
     if (rank == 0){
         starttime = MPI_Wtime();
     }
+
+
         
     while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS && !stopSteps)
     {
@@ -89,6 +92,9 @@ int main(int argc, char **argv)
         printf("TOTAL STEPS: %d\n", num_steps);
         // printf("\n%d", matrix[N - 2][1]);
     }
+    */
+
+    free(matrix);
 
     MPI_Finalize();
     return 0;

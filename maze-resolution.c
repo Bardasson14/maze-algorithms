@@ -215,7 +215,8 @@ void omp_step(int (*matrix)[N])
 // O mpi_step tem que ser convertido para lidar apenas com uma fração da Matriz
 // Deve juntar todos os chunks de dados, considerando só a carga útil
 
-void mpi_step(int **dataChunk, int rank, int size)
+/*
+*void mpi_step(int *dataChunk, int rank, int size)
 {
     int rows = sizeof(dataChunk) / sizeof(dataChunk[0]);
     int cols = sizeof(dataChunk[0]) / sizeof(dataChunk[0][0]);
@@ -255,13 +256,12 @@ void mpi_step(int **dataChunk, int rank, int size)
     // Espera matrix temporária estar completa
     MPI_Barrier(MPI_COMM_WORLD);
 
-    /*
     if (rank == 0){
         // printf("\nSTARTING COPY %d\n", rank);
         // fflush(stdin);
         copy_matrix(write_into, dataChunk); - REVER MANEIRA DE COPIAR
     }
-    */
 
     return;
 }
+*/
