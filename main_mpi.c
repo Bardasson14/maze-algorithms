@@ -23,25 +23,28 @@ int main(int argc, char **argv)
     int num_steps = 0;
     int stopSteps = 0;
     int totalRows;
-    int (*matrix)[N];
+    int matrix[N][N];
     int *dataChunk;
     int payloadBoundaries[2][2];
     int nElem;
 
-    matrix = (int (*)[N])malloc(sizeof(*matrix)*N);
+    
 
     // rank 0 apenas gerencia a comunicação
 
     if (rank == 0) {
-        getPatternMaze(matrix);
+        copy_maze(maze_sizeof_1024, matrix);
         num_steps = 0;
 
         for (int i=1; i<size;i++) {
-            printf("MOCKED RANK: %d\n", i);
             calculatePayloadBoundaries(i, size-1, payloadBoundaries);
-            fillChunk(matrix, dataChunk, i, size-1, payloadBoundaries);
-            //MPI_Send(&totalRows, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            //MPI_Send(&dataChunk[0][0], totalRows*N, MPI_INT, i, 0, MPI_COMM_WORLD);
+            //printf("rank: %d\n", i);
+            //printf("filling chunk...\n");
+            //printf("chunk filled with data...\n");
+            dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
+            nElem = sizeof(dataChunk)/sizeof(int);
+            MPI_Send(&nElem, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&dataChunk[0], nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
             free(dataChunk);
         }
     }
@@ -94,7 +97,7 @@ int main(int argc, char **argv)
     }
     */
 
-    free(matrix);
+    //free(matrix);
 
     MPI_Finalize();
     return 0;

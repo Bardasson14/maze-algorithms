@@ -3,7 +3,7 @@
 #include "constants.h"
 
 int getIndex(int *arr, int i, int j) {
-    return arr[i*N + j];
+    return i*N + j - 1;
 }
 
 // OBS.: Manter operações aritméticas por meio de funções
@@ -104,7 +104,7 @@ int **mallocContiguousMatrix(int rows) // TODO: liberar chunks
 
 
 // preenche os chunks de dados com info da matriz
-int *fillChunk(int (*matrix)[N], int *dataChunk, int rank, int size, int payloadBoundaries[2][2])
+int *fillChunk(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2][2])
 {
     int chunkSize, continuousStart, totalRows, upperLineIndex, lowerLineIndex, i_chunk;
     // TODO: add restrições colunas
@@ -113,28 +113,25 @@ int *fillChunk(int (*matrix)[N], int *dataChunk, int rank, int size, int payload
     int startPayloadRow = payloadBoundaries[0][0];
     int finalPayloadRow = payloadBoundaries[1][0];
 
-    totalRows = finalPayloadRow - startPayloadRow + 1 + 2; // incluindo linhas de vizinhança
+    printf("startPayloadRow: %d\n", startPayloadRow);
+    printf("finalPayloadRow: %d\n", finalPayloadRow);
 
-    long int totalChunkSizeBytes = totalRows * N * sizeof(int);
-    dataChunk = malloc(totalChunkSizeBytes);
+    totalRows = finalPayloadRow - startPayloadRow + 3; // incluindo linhas de vizinhança e OFFSET
+    printf("totalRows: %d\n", totalRows);
 
-    /*
-    for (int i=startPayloadRow; i< finalPayloadRow; i++) {
+    int totalChunkSizeBytes = 265216 * sizeof(int); // DEIXAR MOCKADO POR ENQUANTO
+    //printf("totalRows * N: %d\n", totalRows*N);
+    dataChunk = (int*)malloc(totalChunkSizeBytes);
+
+    for (int i=startPayloadRow; i<=finalPayloadRow; i++) {
         i_chunk = i - startPayloadRow + 1; // +1 -> offset (primeira linha é de informação adicional)
         for (int j=0; j<N; j++) {
             index = getIndex(dataChunk, i_chunk, j);
             dataChunk[index] = matrix[i][j];
         }
-    }*/
-
-    for (int i=0;i<N;i++) {
-        for (int j=0; j<N; j++) {
-            printf("i: %d | j: %d\n", i, j);
-        }
     }
 
     // preencher linhas adicionais
-    printf("upper\n");
     if (startPayloadRow == 0)
     {
         for (int j = 0; j < N; j++) {
@@ -152,8 +149,7 @@ int *fillChunk(int (*matrix)[N], int *dataChunk, int rank, int size, int payload
         }
     }
 
-    printf("lower\n");
-    if (finalPayloadRow == N - 1)
+    if (finalPayloadRow == N - 1) // TODO: rever essa checagem
     {
         for (int j = 0; j < N; j++) {
             index = getIndex(dataChunk, finalPayloadRow+1, j);
@@ -167,8 +163,10 @@ int *fillChunk(int (*matrix)[N], int *dataChunk, int rank, int size, int payload
         for (int j = 0; j < N; j++) {
             index = getIndex(dataChunk, finalPayloadRow+1, j);
             dataChunk[index] = matrix[lowerLineIndex][j];
+            //printf("chunk[%d] = %d", j, dataChunk[j]);
         }
     }
+    printf("lower passed\n");
 
     return dataChunk;
 }
