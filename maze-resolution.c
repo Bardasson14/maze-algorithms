@@ -10,7 +10,7 @@
 //  1 = white square
 //  2 = G
 
-int right_is(int matrix[N][N], Vector2 pos, int type)
+int right_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x][pos.y + 1] == type)
         return 1;
@@ -18,7 +18,7 @@ int right_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int left_is(int matrix[N][N], Vector2 pos, int type)
+int left_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x][pos.y - 1] == type)
         return 1;
@@ -26,7 +26,7 @@ int left_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int up_is(int matrix[N][N], Vector2 pos, int type)
+int up_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x - 1][pos.y] == type)
         return 1;
@@ -34,7 +34,7 @@ int up_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int down_is(int matrix[N][N], Vector2 pos, int type)
+int down_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x + 1][pos.y] == type)
         return 1;
@@ -42,7 +42,7 @@ int down_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int upper_right_is(int matrix[N][N], Vector2 pos, int type)
+int upper_right_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x - 1][pos.y + 1] == type)
         return 1;
@@ -50,7 +50,7 @@ int upper_right_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int down_right_is(int matrix[N][N], Vector2 pos, int type)
+int down_right_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x + 1][pos.y + 1] == type)
         return 1;
@@ -58,7 +58,7 @@ int down_right_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int upper_left_is(int matrix[N][N], Vector2 pos, int type)
+int upper_left_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x - 1][pos.y - 1] == type)
         return 1;
@@ -66,14 +66,14 @@ int upper_left_is(int matrix[N][N], Vector2 pos, int type)
         return 0;
 }
 
-int down_left_is(int matrix[N][N], Vector2 pos, int type)
+int down_left_is(int (*matrix)[N], Vector2 pos, int type)
 {
     if (matrix[pos.x + 1][pos.y - 1] == type)
         return 1;
     else
         return 0;
 }
-int has_edge_of_type(int matrix[N][N], Vector2 pos, int neighbour_type)
+int has_edge_of_type(int (*matrix)[N], Vector2 pos, int neighbour_type)
 {
 
     if (up_is(matrix, pos, neighbour_type))
@@ -88,7 +88,7 @@ int has_edge_of_type(int matrix[N][N], Vector2 pos, int neighbour_type)
         return 0;
 }
 
-void copy_matrix(int matrix[N][N], int copy_to[N][N])
+void copy_matrix(int (*matrix)[N], int copy_to[N][N])
 {
     for (int i = 0; i < N; i++)
     {
@@ -100,7 +100,7 @@ void copy_matrix(int matrix[N][N], int copy_to[N][N])
     }
 }
 
-void make_zeros(int matrix[N][N])
+void make_zeros(int (*matrix)[N])
 {
     for (int i = 0; i < N; i++)
     {
@@ -111,7 +111,7 @@ void make_zeros(int matrix[N][N])
     }
 }
 
-void print_matrix(int matrix[N][N])
+void print_matrix(int (*matrix)[N])
 {
     for (int i = 0; i < N; i++)
     {
@@ -126,7 +126,7 @@ void print_matrix(int matrix[N][N])
     printf("\n");
 }
 
-int evaluate_step(int matrix[N][N], Vector2 pos, int it_is)
+int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
 {
 
     if (it_is == Black)
@@ -159,9 +159,10 @@ int evaluate_step(int matrix[N][N], Vector2 pos, int it_is)
 }
 
 // Lê matrix sequencial
-void seq_step(int matrix[N][N])
+/*
+void seq_step(int (*matrix)[N])
 {
-    int write_into[N][N] = {0};
+    int write_into[N] = {0};
 
     for (int i = 1; i < N - 1; i++)
     {
@@ -176,9 +177,10 @@ void seq_step(int matrix[N][N])
 
     copy_matrix(write_into, matrix);
 }
+*/
 
 // Lê matrix OpenMP
-void omp_step(int matrix[N][N])
+void omp_step(int (*matrix)[N])
 {
     int write_into[N][N] = {0};
     int thread_id, n_threads;
@@ -209,41 +211,57 @@ void omp_step(int matrix[N][N])
     }
 }
 
-// Lê matrix OpenMPI
-void mpi_step(int matrix[N][N])
+// Lê matrix MPI
+// O mpi_step tem que ser convertido para lidar apenas com uma fração da Matriz
+// Deve juntar todos os chunks de dados, considerando só a carga útil
+
+void mpi_step(int **dataChunk, int rank, int size)
 {
-	// MPI_Comm_size(MPI_COMM_WORLD, &size);
-	// MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int rows = sizeof(dataChunk) / sizeof(dataChunk[0]);
+    int cols = sizeof(dataChunk[0]) / sizeof(dataChunk[0][0]);
 
-    int write_into[N][N] = {0};
+    int **write_into = (int**)malloc(rows*sizeof(int*));
+    
+    for(int i = 0; i < rows; i++) {
+        write_into[i] = (int *)malloc(cols * sizeof(int));
+        for (int j=0; j < cols; j++) {
+            write_into[i][j] = 0;
+        }
+    } 
 
-    for (int i = 1; i < N - 1; i++)
+    // TODO: eliminar n-1 da verificação
+    // usando rank e size
+
+    if (rank == size-1) {
+        rows--;
+        cols--;
+    }
+
+    for (int i = 0; i < rows; i++)
     {
-        for (int j = 1; j < N - 1; j++)
+        for (int j = 0; j < cols; j++)
         {
 
-            //thread_id = omp_get_thread_num();
-            // n_threads = omp_get_num_threads();
-
-            //printf("\nCHECAGEM FEITA NA THREAD: %d\n", rank);
+            printf("entrou\n");
 
             Vector2 pos;
             pos.x = i;
             pos.y = j;
 
-            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
-
+            write_into[i][j] = evaluate_step(dataChunk, pos, dataChunk[i][j]);
         }
     }
 
     // Espera matrix temporária estar completa
     MPI_Barrier(MPI_COMM_WORLD);
 
+    /*
     if (rank == 0){
         // printf("\nSTARTING COPY %d\n", rank);
         // fflush(stdin);
-        copy_matrix(write_into, matrix);
+        copy_matrix(write_into, dataChunk); - REVER MANEIRA DE COPIAR
     }
+    */
 
     return;
 }
