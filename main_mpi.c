@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     int totalRows;
     int matrix[N][N];
     int *dataChunk;
-    int payloadBoundaries[2][2];
+    int payloadBoundaries[2];
     int nElem;
 
     
@@ -44,11 +44,41 @@ int main(int argc, char **argv)
             dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
             nElem = sizeof(dataChunk)/sizeof(int);
             MPI_Send(&nElem, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&dataChunk[0], nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
             free(dataChunk);
         }
+
+        for(int i = 1; i < size; i++){
+
+            calculatePayloadBoundaries(i, size-1, payloadBoundaries);
+            MPI_Recv(dataChunk, nElem * sizeof(int), MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            for(int row = payloadBoundaries[0]; row <= payloadBoundaries[1]; row++){
+
+                for(int j = 0; j < N; j++){
+                    matrix[row][j] = dataChunk[getIndex(row, j)];
+                }
+
+            }
+
+
+        }
+        free(dataChunk);
     }
-/*
+    else{
+
+        MPI_Recv(nElem, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        dataChunk = (int *)malloc(nElem * sizeof(int));
+        MPI_Recv(dataChunk, nElem * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        //Do step on chunk
+
+        MPI_Send(dataChunk, nElem * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD);
+        
+
+    }
+
+    /*
     // Sincroniza relógio
     MPI_Barrier(MPI_COMM_WORLD);
     if (rank == 0){
@@ -101,4 +131,5 @@ int main(int argc, char **argv)
 
     MPI_Finalize();
     return 0;
+
 }

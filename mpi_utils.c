@@ -2,69 +2,79 @@
 // #include <stdlib.h>
 #include "constants.h"
 
-int getIndex(int *arr, int i, int j) {
-    return i*N + j - 1;
+int getIndex(int i, int j)
+{
+    return i * N + j;
 }
 
+// 0 1 2
+// 3 4 5
+// 6 7 8
+
+// M = 3x3
+// 3 threads
+// 7/3 = 2
+// 7%3 = 1
+
 // OBS.: Manter operações aritméticas por meio de funções
-void calculatePayloadBoundaries(int rank, int size, int payloadBoundariesMatrix[2][2])
+void calculatePayloadBoundaries(int rank, int nThreads, int payloadBoundariesMatrix[2])
 {
     // FORMATO
     // [
     //  [i_inicial, j_inicial],
     //  [i_final, j_final],
-    //]
+    // ]
 
-    int chunkSize, contiguousStart, startRow = 0, startCol = 0, finalRow, finalCol;
+    int chunkSize, contiguousStart, startRow = 1, finalRow = Size, smallerChunk;
     div_t output;
 
-    int nElem = (int)pow(N, 2);
-    chunkSize = nElem / size;
+    int nElem = (int)pow(Size, 2);
+    output = div(Size, nThreads);
+    chunkSize = output.quot;
+    smallerChunk = output.rem;
+    output = div((rank - 1) * Size, nThreads); // desconsiderar processo 0, que só envia as mensagens
 
-    output = div((rank - 1) * nElem, size); // desconsiderar processo 0, que só envia as mensagens
-    contiguousStart = output.quot; 
+    // Size = 1024
+    // nThreads = 4
+    // nElem = 1024*1024 = 1048576
+    // rank 2
+    // em termos de linha
+    // partição 0: [0,   255]   (rank 1)
+    // partição 1: [256, 511]   (rank 2)
+    // partição 2: [512, 767]   (rank 3)
+    // partição 3: [768, 1023]  (rank 4)
 
     if (rank != 1)
     {
-        output = div(contiguousStart, N);
-        startRow = output.quot;
-        startCol = output.rem;
+        startRow = output.quot + 1;
     }
 
-    output = div(nElem, size);
-
-    if ((rank == (size - 1)) && (output.quot) != 0)
+    if (smallerChunk != 0)
     {
-        output = div(nElem, size);
-        chunkSize = output.rem; // nElem%size; // chunk final com tamanho menor, caso n_threads não seja divisor de N^2
-        output = div(contiguousStart + chunkSize, N);
-        finalRow = output.quot;
+        chunkSize = smallerChunk;
+    }
+
+    if (rank == nThreads) // último processo com menos dados para tratar (Size%nThreads !=0)
+    {
+        finalRow = Size; // [1023]
     }
     else
     {
-        output = div(contiguousStart + chunkSize, N);
-        finalRow = output.quot;
+        finalRow = chunkSize + (rank - 1) * chunkSize;
     }
 
-    output = div(contiguousStart + chunkSize, N);
-    finalCol = output.rem;
-
-    payloadBoundariesMatrix[0][0] = startRow;
-    payloadBoundariesMatrix[0][1] = startCol;
-    payloadBoundariesMatrix[1][0] = finalRow;
-    payloadBoundariesMatrix[1][1] = finalCol;
+    payloadBoundariesMatrix[0] = startRow;
+    payloadBoundariesMatrix[1] = finalRow;
 }
 
-void writeToMatrix(int (*matrix)[N], int **dataChunk, int rank, int size)
+void writeToMatrix(int (*matrix)[N], int **dataChunk, int rank, int nThreads)
 {
-    int payloadBoundaries[2][2];
+    int payloadBoundaries[2];
     int startRow, startCol, finalRow, finalCol;
-    calculatePayloadBoundaries(rank, size, payloadBoundaries);
+    calculatePayloadBoundaries(rank, nThreads, payloadBoundaries);
 
-    startRow = payloadBoundaries[0][0];
-    startCol = payloadBoundaries[0][1];
-    finalRow = payloadBoundaries[1][0];
-    finalCol = payloadBoundaries[1][1];
+    startRow = payloadBoundaries[0];
+    finalRow = payloadBoundaries[1];
 
     // escrever na matriz
     // converter local para global
@@ -89,8 +99,8 @@ int **mallocContiguousMatrix(int rows) // TODO: liberar chunks
 {
     // garante que toda a matriz é composta de endereços seguidos em memória, facilitando o MPI_Send
     printf("rows: %d\n", rows);
-    int *mem = malloc(rows * N * sizeof(int));
-    int **A = malloc(rows * sizeof(int *));
+    int *mem = malloc(rows * N * nThreadsof(int));
+    int **A = malloc(rows * nThreadsof(int *));
     A[0] = mem;
 
     for (int i = 1; i < rows; i++) {
@@ -102,71 +112,30 @@ int **mallocContiguousMatrix(int rows) // TODO: liberar chunks
 }
 */
 
-
 // preenche os chunks de dados com info da matriz
-int *fillChunk(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2][2])
+int *fillChunk(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2])
 {
-    int chunkSize, continuousStart, totalRows, upperLineIndex, lowerLineIndex, i_chunk;
-    // TODO: add restrições colunas
+    int chunkSize, continuousStart, upperLineIndex, lowerLineIndex, i_chunk;
 
     int index;
-    int startPayloadRow = payloadBoundaries[0][0];
-    int finalPayloadRow = payloadBoundaries[1][0];
+    int startPayloadRow = payloadBoundaries[0];
+    int finalPayloadRow = payloadBoundaries[1];
+    int totalRows = finalPayloadRow - startPayloadRow + 1 + 2;
 
-    printf("startPayloadRow: %d\n", startPayloadRow);
-    printf("finalPayloadRow: %d\n", finalPayloadRow);
+    // incluindo linhas de vizinhança e paddings
+    int totalChunkSizeBytes = 1056768;
+    dataChunk = (int *)malloc(totalChunkSizeBytes);
 
-    totalRows = finalPayloadRow - startPayloadRow + 3; // incluindo linhas de vizinhança e OFFSET
-    printf("totalRows: %d\n", totalRows);
-
-    int totalChunkSizeBytes = 265216 * sizeof(int); // DEIXAR MOCKADO POR ENQUANTO
-    //printf("totalRows * N: %d\n", totalRows*N);
-    dataChunk = (int*)malloc(totalChunkSizeBytes);
-
-    for (int i=startPayloadRow; i<=finalPayloadRow; i++) {
-        i_chunk = i - startPayloadRow + 1; // +1 -> offset (primeira linha é de informação adicional)
-        for (int j=0; j<N; j++) {
-            index = getIndex(dataChunk, i_chunk, j);
+    for (int i = startPayloadRow - 1; i < finalPayloadRow + 1; i++)
+    {
+        i_chunk = i - startPayloadRow + 1; //  +1 -> offset (primeira linha é de informação adicional)
+        
+        for (int j = 0; j < N; j++)
+        {
+            index = getIndex(i_chunk, j);
             dataChunk[index] = matrix[i][j];
         }
     }
-
-    // preencher linhas adicionais
-    if (startPayloadRow == 0)
-    {
-        for (int j = 0; j < N; j++) {
-            index = getIndex(dataChunk, 0, j);
-            dataChunk[index] = -1;
-        }
-    }
-
-    else
-    {
-        upperLineIndex = startPayloadRow - 1;
-        for (int j = 0; j < N; j++) {
-            index = getIndex(dataChunk, upperLineIndex, j);
-            dataChunk[index] = matrix[upperLineIndex][j];
-        }
-    }
-
-    if (finalPayloadRow == N - 1) // TODO: rever essa checagem
-    {
-        for (int j = 0; j < N; j++) {
-            index = getIndex(dataChunk, finalPayloadRow+1, j);
-            dataChunk[index] = -1;
-        }
-    }
-
-    else
-    {
-        lowerLineIndex = finalPayloadRow + 1;
-        for (int j = 0; j < N; j++) {
-            index = getIndex(dataChunk, finalPayloadRow+1, j);
-            dataChunk[index] = matrix[lowerLineIndex][j];
-            //printf("chunk[%d] = %d", j, dataChunk[j]);
-        }
-    }
-    printf("lower passed\n");
 
     return dataChunk;
 }

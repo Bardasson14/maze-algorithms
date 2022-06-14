@@ -100,6 +100,17 @@ void copy_matrix(int (*matrix)[N], int copy_to[N][N])
     }
 }
 
+void copy_chunk(int **matrix, int *dataChunk, int rows)
+{
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            dataChunk[getIndex(i,j)] = matrix[i][j];
+        }
+    }
+}
+
 void make_zeros(int (*matrix)[N])
 {
     for (int i = 0; i < N; i++)
@@ -124,6 +135,38 @@ void print_matrix(int (*matrix)[N])
     }
 
     printf("\n");
+}
+
+
+int evaluate_step_mpi(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
+{
+
+    if (it_is == Black)
+    {
+        // Right, above and upper-right are White or Goal
+        if ((right_is(dataChunk, pos, White) || right_is(dataChunk, pos, Goal)) && (up_is(dataChunk, pos, White) || up_is(dataChunk, pos, Goal)) && (upper_right_is(dataChunk, pos, White) || upper_right_is(dataChunk, pos, Goal)))
+        {
+            return White;
+        }
+    }
+
+    else
+    {
+        // Right and above are black
+        if (right_is(dataChunk, pos, Black) && up_is(dataChunk, pos, Black))
+        {
+            return Black;
+        }
+
+        else
+        {
+            if (has_edge_of_type(dataChunk, pos, Goal))
+            {
+                return Goal;
+            }
+        }
+    }
+    return it_is;
 }
 
 int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
@@ -159,7 +202,7 @@ int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar s
 }
 
 // Lê matrix sequencial
-/*
+
 void seq_step(int (*matrix)[N])
 {
     int write_into[N] = {0};
@@ -177,7 +220,6 @@ void seq_step(int (*matrix)[N])
 
     copy_matrix(write_into, matrix);
 }
-*/
 
 // Lê matrix OpenMP
 void omp_step(int (*matrix)[N])
@@ -215,53 +257,25 @@ void omp_step(int (*matrix)[N])
 // O mpi_step tem que ser convertido para lidar apenas com uma fração da Matriz
 // Deve juntar todos os chunks de dados, considerando só a carga útil
 
-/*
-*void mpi_step(int *dataChunk, int rank, int size)
+void mpi_step(int *dataChunk, int rank, int size)
 {
-    int rows = sizeof(dataChunk) / sizeof(dataChunk[0]);
-    int cols = sizeof(dataChunk[0]) / sizeof(dataChunk[0][0]);
+    int rows = sizeof(dataChunk)/(sizeof(int)*1024);
+    int cols = N;
 
     int **write_into = (int**)malloc(rows*sizeof(int*));
     
     for(int i = 0; i < rows; i++) {
         write_into[i] = (int *)malloc(cols * sizeof(int));
-        for (int j=0; j < cols; j++) {
-            write_into[i][j] = 0;
-        }
-    } 
-
-    // TODO: eliminar n-1 da verificação
-    // usando rank e size
-
-    if (rank == size-1) {
-        rows--;
-        cols--;
-    }
-
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < cols; j++)
-        {
-
-            printf("entrou\n");
-
+        for (int j=0; j < (cols-1); j++) {
             Vector2 pos;
             pos.x = i;
             pos.y = j;
-
-            write_into[i][j] = evaluate_step(dataChunk, pos, dataChunk[i][j]);
+            write_into[i][j] = evaluate_step_mpi(dataChunk, pos, dataChunk[getIndex(i, j)]);
         }
-    }
+    } 
 
     // Espera matrix temporária estar completa
     MPI_Barrier(MPI_COMM_WORLD);
+    copy_chunk(write_into, dataChunk, rows);
 
-    if (rank == 0){
-        // printf("\nSTARTING COPY %d\n", rank);
-        // fflush(stdin);
-        copy_matrix(write_into, dataChunk); - REVER MANEIRA DE COPIAR
-    }
-
-    return;
 }
-*/
