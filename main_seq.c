@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         int choice = -1;
         scanf(" %d", &choice);
     }
-    seq_step(matrix);
+    seqStep(matrix);
     // printf("After %d° step \n", num_steps + 1);
     // print_matrix(matrix);
     num_steps++;

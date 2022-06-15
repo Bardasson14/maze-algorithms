@@ -29,7 +29,7 @@ int main(void)
             int choice = -1;
             scanf(" %d", &choice);
         }
-        omp_step(matrix);
+        ompStep(matrix);
         //printf("After %d° step \n", num_steps + 1);
         //print_matrix(matrix);
         num_steps++;

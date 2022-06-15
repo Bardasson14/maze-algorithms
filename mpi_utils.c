@@ -1,5 +1,4 @@
 #include <math.h>
-// #include <stdlib.h>
 #include "constants.h"
 
 int getIndex(int i, int j)
@@ -17,7 +16,7 @@ int getIndex(int i, int j)
 // 7%3 = 1
 
 // OBS.: Manter operações aritméticas por meio de funções
-void calculatePayloadBoundaries(int rank, int nThreads, int payloadBoundariesMatrix[2])
+void calculatePayloadBoundaries(int rank, int nWorkers, int payloadBoundariesMatrix[2])
 {
     // FORMATO
     // [
@@ -28,14 +27,13 @@ void calculatePayloadBoundaries(int rank, int nThreads, int payloadBoundariesMat
     int chunkSize, contiguousStart, startRow = 1, finalRow = Size, smallerChunk;
     div_t output;
 
-    int nElem = (int)pow(Size, 2);
-    output = div(Size, nThreads);
+    output = div(Size, nWorkers);
     chunkSize = output.quot;
     smallerChunk = output.rem;
-    output = div((rank - 1) * Size, nThreads); // desconsiderar processo 0, que só envia as mensagens
+    output = div((rank - 1) * Size, nWorkers); // desconsiderar processo 0, que só envia as mensagens
 
     // Size = 1024
-    // nThreads = 4
+    // nWorkers = 4
     // nElem = 1024*1024 = 1048576
     // rank 2
     // em termos de linha
@@ -54,7 +52,7 @@ void calculatePayloadBoundaries(int rank, int nThreads, int payloadBoundariesMat
         chunkSize = smallerChunk;
     }
 
-    if (rank == nThreads) // último processo com menos dados para tratar (Size%nThreads !=0)
+    if (rank == nWorkers) // último processo com menos dados para tratar (Size%nThreads !=0)
     {
         finalRow = Size; // [1023]
     }
@@ -67,50 +65,21 @@ void calculatePayloadBoundaries(int rank, int nThreads, int payloadBoundariesMat
     payloadBoundariesMatrix[1] = finalRow;
 }
 
-void writeToMatrix(int (*matrix)[N], int **dataChunk, int rank, int nThreads)
+int calculateTotalChunkSize(int payloadBoundaries[2]) {
+    return (payloadBoundaries[1]-payloadBoundaries[0]+3)*N;
+}
+
+void writeToMatrix(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2]) // PREENCHER A MATRIZ ORIGINAL
 {
-    int payloadBoundaries[2];
-    int startRow, startCol, finalRow, finalCol;
-    calculatePayloadBoundaries(rank, nThreads, payloadBoundaries);
+    for(int j = 1; j < Size; j++) {
+        for(int row = payloadBoundaries[0]; row <= payloadBoundaries[1]; row++){
 
-    startRow = payloadBoundaries[0];
-    finalRow = payloadBoundaries[1];
-
-    // escrever na matriz
-    // converter local para global
-
-    /*
-    for (int i=startRow; i<=finalRow; i++) {
-        for (int j=0; j<=N; j++) {
-            if !((i==startRow && j<startCol) || (i==finalRow && j>finalCol)) {
-                // write
-
-                // TODO: add verificações de pertencimento
-                // ex.: i = start row e j < start col
-                // ex.: i = final row e j > final col
+            for(int k = 0; k < N; k++){
+                matrix[row][k] = dataChunk[getIndex(row, k)];
             }
         }
     }
-    */
 }
-
-/*
-int **mallocContiguousMatrix(int rows) // TODO: liberar chunks
-{
-    // garante que toda a matriz é composta de endereços seguidos em memória, facilitando o MPI_Send
-    printf("rows: %d\n", rows);
-    int *mem = malloc(rows * N * nThreadsof(int));
-    int **A = malloc(rows * nThreadsof(int *));
-    A[0] = mem;
-
-    for (int i = 1; i < rows; i++) {
-        A[i] = A[i - 1] + N;
-    }
-
-    printf("\nalocação finalizada com sucesso\n");
-    return mem;
-}
-*/
 
 // preenche os chunks de dados com info da matriz
 int *fillChunk(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2])
@@ -123,10 +92,10 @@ int *fillChunk(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2])
     int totalRows = finalPayloadRow - startPayloadRow + 1 + 2;
 
     // incluindo linhas de vizinhança e paddings
-    int totalChunkSizeBytes = 1056768;
+    int totalChunkSizeBytes = totalRows * N * sizeof(int);
     dataChunk = (int *)malloc(totalChunkSizeBytes);
 
-    for (int i = startPayloadRow - 1; i < finalPayloadRow + 1; i++)
+    for (int i = startPayloadRow - 1; i <= finalPayloadRow + 1; i++)
     {
         i_chunk = i - startPayloadRow + 1; //  +1 -> offset (primeira linha é de informação adicional)
         

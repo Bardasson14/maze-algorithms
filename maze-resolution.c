@@ -10,79 +10,170 @@
 //  1 = white square
 //  2 = G
 
-int right_is(int (*matrix)[N], Vector2 pos, int type)
+int right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x][pos.y + 1] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x, pos.y+1)] == type) {
+            return 1;
+        }
+
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x][pos.y + 1] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int left_is(int (*matrix)[N], Vector2 pos, int type)
+int left_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x][pos.y - 1] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x, pos.y-1)] == type) {
+            return 1;
+        }
+
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x][pos.y - 1] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int up_is(int (*matrix)[N], Vector2 pos, int type)
+int up_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x - 1][pos.y] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x-1, pos.y)] == type) {
+            return 1;
+        }
+
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x - 1][pos.y] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int down_is(int (*matrix)[N], Vector2 pos, int type)
+int down_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x + 1][pos.y] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x+1, pos.y)] == type) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x + 1][pos.y] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int upper_right_is(int (*matrix)[N], Vector2 pos, int type)
+int upper_right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x - 1][pos.y + 1] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x+1, pos.y)] == type) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x+1][pos.y] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int down_right_is(int (*matrix)[N], Vector2 pos, int type)
+int down_right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x + 1][pos.y + 1] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x+1, pos.y+1)] == type) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x + 1][pos.y + 1] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int upper_left_is(int (*matrix)[N], Vector2 pos, int type)
+int upper_left_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x - 1][pos.y - 1] == type)
-        return 1;
-    else
-        return 0;
+    if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x-1, pos.y-1)] == type) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x - 1][pos.y - 1] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
 
-int down_left_is(int (*matrix)[N], Vector2 pos, int type)
+int down_left_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
-    if (matrix[pos.x + 1][pos.y - 1] == type)
-        return 1;
-    else
-        return 0;
+     if (dataChunk != NULL) {
+        if (dataChunk[getIndex(pos.x+1, pos.y-1)] == type) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    else {
+        if (matrix[pos.x + 1][pos.y - 1] == type)
+            return 1;
+        else
+            return 0;
+    }
 }
-int has_edge_of_type(int (*matrix)[N], Vector2 pos, int neighbour_type)
+int has_edge_of_type(int (*matrix)[N], int *dataChunk, Vector2 pos, int neighbour_type)
 {
 
-    if (up_is(matrix, pos, neighbour_type))
+    if (up_is(matrix, dataChunk, pos, neighbour_type))
         return 1;
-    else if (right_is(matrix, pos, neighbour_type))
+    else if (right_is(matrix, dataChunk, pos, neighbour_type))
         return 1;
-    else if (down_is(matrix, pos, neighbour_type))
+    else if (down_is(matrix, dataChunk, pos, neighbour_type))
         return 1;
-    else if (left_is(matrix, pos, neighbour_type))
+    else if (left_is(matrix, dataChunk, pos, neighbour_type))
         return 1;
     else
         return 0;
@@ -100,7 +191,7 @@ void copy_matrix(int (*matrix)[N], int copy_to[N][N])
     }
 }
 
-void copy_chunk(int **matrix, int *dataChunk, int rows)
+void copyChunk(int **matrix, int *dataChunk, int rows)
 {
     for (int i = 0; i < rows; i++)
     {
@@ -138,13 +229,13 @@ void print_matrix(int (*matrix)[N])
 }
 
 
-int evaluate_step_mpi(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
+int evaluateStepMPI(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
 {
 
     if (it_is == Black)
     {
         // Right, above and upper-right are White or Goal
-        if ((right_is(dataChunk, pos, White) || right_is(dataChunk, pos, Goal)) && (up_is(dataChunk, pos, White) || up_is(dataChunk, pos, Goal)) && (upper_right_is(dataChunk, pos, White) || upper_right_is(dataChunk, pos, Goal)))
+        if ((right_is(NULL, dataChunk, pos, White) || right_is(NULL, dataChunk, pos, Goal)) && (up_is(NULL, dataChunk, pos, White) || up_is(NULL, dataChunk, pos, Goal)) && (upper_right_is(NULL, dataChunk, pos, White) || upper_right_is(NULL, dataChunk, pos, Goal)))
         {
             return White;
         }
@@ -153,14 +244,14 @@ int evaluate_step_mpi(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar
     else
     {
         // Right and above are black
-        if (right_is(dataChunk, pos, Black) && up_is(dataChunk, pos, Black))
+        if (right_is(NULL, dataChunk, pos, Black) && up_is(NULL, dataChunk, pos, Black))
         {
             return Black;
         }
 
         else
         {
-            if (has_edge_of_type(dataChunk, pos, Goal))
+            if (has_edge_of_type(NULL, dataChunk, pos, Goal))
             {
                 return Goal;
             }
@@ -169,13 +260,13 @@ int evaluate_step_mpi(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar
     return it_is;
 }
 
-int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
+int evaluateStep(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
 {
 
     if (it_is == Black)
     {
         // Right, above and upper-right are White or Goal
-        if ((right_is(matrix, pos, White) || right_is(matrix, pos, Goal)) && (up_is(matrix, pos, White) || up_is(matrix, pos, Goal)) && (upper_right_is(matrix, pos, White) || upper_right_is(matrix, pos, Goal)))
+        if ((right_is(matrix, NULL, pos, White) || right_is(matrix, NULL, pos, Goal)) && (up_is(matrix, NULL, pos, White) || up_is(matrix, NULL, pos, Goal)) && (upper_right_is(matrix, NULL, pos, White) || upper_right_is(matrix, NULL, pos, Goal)))
         {
             return White;
         }
@@ -184,14 +275,14 @@ int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar s
     else
     {
         // Right and above are black
-        if (right_is(matrix, pos, Black) && up_is(matrix, pos, Black))
+        if (right_is(matrix, NULL, pos, Black) && up_is(matrix, NULL, pos, Black))
         {
             return Black;
         }
 
         else
         {
-            if (has_edge_of_type(matrix, pos, Goal))
+            if (has_edge_of_type(matrix, NULL, pos, Goal))
             {
                 return Goal;
             }
@@ -203,9 +294,9 @@ int evaluate_step(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar s
 
 // Lê matrix sequencial
 
-void seq_step(int (*matrix)[N])
+void seqStep(int (*matrix)[N])
 {
-    int write_into[N] = {0};
+    int write_into[N][N] = {0};
 
     for (int i = 1; i < N - 1; i++)
     {
@@ -214,7 +305,7 @@ void seq_step(int (*matrix)[N])
             Vector2 pos;
             pos.x = i;
             pos.y = j;
-            write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+            write_into[i][j] = evaluateStep(matrix, pos, matrix[i][j]);
         }
     }
 
@@ -222,7 +313,7 @@ void seq_step(int (*matrix)[N])
 }
 
 // Lê matrix OpenMP
-void omp_step(int (*matrix)[N])
+void ompStep(int (*matrix)[N])
 {
     int write_into[N][N] = {0};
     int thread_id, n_threads;
@@ -245,7 +336,7 @@ void omp_step(int (*matrix)[N])
                 pos.x = i;
                 pos.y = j;
 
-                write_into[i][j] = evaluate_step(matrix, pos, matrix[i][j]);
+                write_into[i][j] = evaluateStep(matrix, pos, matrix[i][j]);
             }
         }
         //printf("\nSTARTING COPY\n");
@@ -254,28 +345,30 @@ void omp_step(int (*matrix)[N])
 }
 
 // Lê matrix MPI
-// O mpi_step tem que ser convertido para lidar apenas com uma fração da Matriz
+// O mpiStep tem que ser convertido para lidar apenas com uma fração da Matriz
 // Deve juntar todos os chunks de dados, considerando só a carga útil
 
-void mpi_step(int *dataChunk, int rank, int size)
+void mpiStep(int *dataChunk, int rank, int size)
 {
-    int rows = sizeof(dataChunk)/(sizeof(int)*1024);
+    int payloadBoundaries[2];
+    calculatePayloadBoundaries(rank, size-1, payloadBoundaries);
+    int rows = payloadBoundaries[1]-payloadBoundaries[0]+3;
     int cols = N;
 
     int **write_into = (int**)malloc(rows*sizeof(int*));
     
     for(int i = 0; i < rows; i++) {
-        write_into[i] = (int *)malloc(cols * sizeof(int));
-        for (int j=0; j < (cols-1); j++) {
+        write_into[i] = (int *)malloc(N * sizeof(int));
+        for (int j=0; j < N; j++) {
             Vector2 pos;
             pos.x = i;
             pos.y = j;
-            write_into[i][j] = evaluate_step_mpi(dataChunk, pos, dataChunk[getIndex(i, j)]);
+            write_into[i][j] = evaluateStepMPI(dataChunk, pos, dataChunk[getIndex(i, j)]);
         }
     } 
 
     // Espera matrix temporária estar completa
-    MPI_Barrier(MPI_COMM_WORLD);
-    copy_chunk(write_into, dataChunk, rows);
+    //MPI_Barrier(MPI_COMM_WORLD);
+    copyChunk(write_into, dataChunk, rows);
 
 }
