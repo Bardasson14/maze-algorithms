@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     if (rank == 0) {
         starttime = MPI_Wtime();
         copy_maze(maze_sizeof_64, matrix);
+        print_matrix(matrix);
         num_steps = 0;
 
         for (int i=1; i<size;i++) {
@@ -58,17 +59,11 @@ int main(int argc, char **argv)
             dataChunk = (int*)malloc(nElem*sizeof(int));
             MPI_Recv(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-            int recebidoPorRank = 0;
-            for (int i=0; i<nElem; i++) {
-                recebidoPorRank += 1;
-            }
-
-            fflush(stdout);
             mpiStep(dataChunk, rank, size); // mudar o STEP de lugar
             MPI_Send(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD); // devolver ao processo original
         }
 
-        else {
+        if (rank == 0) {
             
             num_steps++;
             printf("num_steps: %d ", num_steps);
@@ -84,10 +79,12 @@ int main(int argc, char **argv)
                     payloadBoundaries[1] = rankBoundaries[i][1]; // end row
                     nElem = calculateTotalChunkSize(payloadBoundaries);
                     MPI_Recv(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    writeToMatrix(matrix, dataChunk, payloadBoundaries);
+
+                    writeToMatrix(matrix, dataChunk, nElem, payloadBoundaries);
                     // TODO: sincronizar matrizes
                 }
             }
+            print_matrix(matrix);
 
             //MPI_Bcast(&stopSteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
         }

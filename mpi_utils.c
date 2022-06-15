@@ -69,15 +69,12 @@ int calculateTotalChunkSize(int payloadBoundaries[2]) {
     return (payloadBoundaries[1]-payloadBoundaries[0]+3)*N;
 }
 
-void writeToMatrix(int (*matrix)[N], int *dataChunk, int payloadBoundaries[2]) // PREENCHER A MATRIZ ORIGINAL
+void writeToMatrix(int (*matrix)[N], int *dataChunk, int nElem, int payloadBoundaries[2]) // PREENCHER A MATRIZ ORIGINAL
 {
-    for(int j = 1; j < Size; j++) {
-        for(int row = payloadBoundaries[0]; row <= payloadBoundaries[1]; row++){
-
-            for(int k = 0; k < N; k++){
-                matrix[row][k] = dataChunk[getIndex(row, k)];
-            }
-        }
+    for(int chunkInd = N; chunkInd < (nElem-N); chunkInd++){
+        int matrixRow = chunkInd / N;
+        int matrixCol = chunkInd % N;
+        matrix[matrixRow + payloadBoundaries[0] -1][matrixCol] = dataChunk[chunkInd];
     }
 }
 
