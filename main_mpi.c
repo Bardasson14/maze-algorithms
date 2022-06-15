@@ -32,39 +32,42 @@ int main(int argc, char **argv)
     int *dataChunk;
 
     // rank 0 apenas gerencia a comunicação
-
     if (rank == 0) {
         starttime = MPI_Wtime();
         copy_maze(maze_sizeof_64, matrix);
-        print_matrix(matrix);
+        //print_matrix(matrix);
         num_steps = 0;
-
-        for (int i=1; i<size;i++) {
-            calculatePayloadBoundaries(i, size-1, payloadBoundaries);
-            dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
-            rankBoundaries[i][0] = payloadBoundaries[0];
-            rankBoundaries[i][1] = payloadBoundaries[1];
-            nElem = calculateTotalChunkSize(payloadBoundaries);
-            //printf("nelem: %d\n", nElem);
-            MPI_Send(&nElem, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
-            free(dataChunk);
-        }
     }
 
     while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS && !stopSteps) {
 
+        if (rank == 0){
+            // Divide matrix atual para os workers
+            for (int i=1; i<size;i++) {
+                calculatePayloadBoundaries(i, size-1, payloadBoundaries);
+                dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
+                rankBoundaries[i][0] = payloadBoundaries[0];
+                rankBoundaries[i][1] = payloadBoundaries[1];
+                nElem = calculateTotalChunkSize(payloadBoundaries);
+                //printf("nelem: %d\n", nElem);
+                MPI_Send(&nElem, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+                MPI_Send(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
+                free(dataChunk);
+            }
+        }
+
         if (rank != 0) {
+            // Recebem chunks e realizam partialStep
             MPI_Recv(&nElem, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             dataChunk = (int*)malloc(nElem*sizeof(int));
             MPI_Recv(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+            printf("ChunkStep\n");
             mpiStep(dataChunk, rank, size); // mudar o STEP de lugar
             MPI_Send(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD); // devolver ao processo original
         }
 
         if (rank == 0) {
-            
+
             num_steps++;
             printf("num_steps: %d ", num_steps);
 
@@ -79,12 +82,11 @@ int main(int argc, char **argv)
                     payloadBoundaries[1] = rankBoundaries[i][1]; // end row
                     nElem = calculateTotalChunkSize(payloadBoundaries);
                     MPI_Recv(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+                    // Junta chunks em matrix
                     writeToMatrix(matrix, dataChunk, nElem, payloadBoundaries);
-                    // TODO: sincronizar matrizes
                 }
             }
-            print_matrix(matrix);
+            //print_matrix(matrix);
 
             //MPI_Bcast(&stopSteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
         }
