@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
+#include "mpi_utils.c"
 
 int main(int argc, char **argv)
 {

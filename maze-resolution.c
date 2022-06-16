@@ -10,6 +10,14 @@
 //  1 = white square
 //  2 = G
 
+int iterations_finished(int matrix[N][N], int num_steps) {
+    if (matrix[N - 2][1] == Goal || num_steps >= MAX_STEPS) {
+        return 1;
+    }
+
+    return 0;
+}
+
 int right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
     if (dataChunk != NULL) {
@@ -191,13 +199,15 @@ void copy_matrix(int (*matrix)[N], int copy_to[N][N])
     }
 }
 
-void copyChunk(int **matrix, int *dataChunk, int rows)
+void copyChunk(int **write_into, int *dataChunk, int rows)
 {
+    int index;
     for (int i = 0; i < rows; i++)
     {
         for (int j = 0; j < N; j++)
         {
-            dataChunk[getIndex(i,j)] = matrix[i][j];
+            index = getIndex(i,j);
+            dataChunk[index] = write_into[index];
         }
     }
 }
@@ -356,19 +366,22 @@ void mpiStep(int *dataChunk, int rank, int size)
     int cols = N;
 
     int **write_into = (int**)malloc(rows*sizeof(int*));
-    
-    for(int i = 0; i < rows; i++) {
+    for(int i = 1; i < rows-1; i++) {
         write_into[i] = (int *)malloc(N * sizeof(int));
-        for (int j=0; j < N; j++) {
+        for (int j=1; j < N-1; j++) {
             Vector2 pos;
             pos.x = i;
             pos.y = j;
-            write_into[i][j] = evaluateStepMPI(dataChunk, pos, dataChunk[getIndex(i, j)]);
+            write_into[i][j] = evaluateStepMPI(dataChunk, pos, dataChunk[getIndex(i, j)]);;
         }
     } 
 
-    // Espera matrix temporária estar completa
-    //MPI_Barrier(MPI_COMM_WORLD);
     copyChunk(write_into, dataChunk, rows);
 
+    for(int i = 0; i < rows; i++){
+        free(write_into[i]);
+    }
+    free(write_into);
+
+    //printf("copiou chunk em %d\n", rank);
 }
