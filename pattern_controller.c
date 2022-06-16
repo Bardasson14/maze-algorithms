@@ -5,7 +5,7 @@
 #include "./patterns/pattern-1024.c"
 #include "./patterns/pattern-2048.c"
 
-void copy_maze(int matrix[N][N], int copy_to[N][N])
+void copy_maze(int (*matrix)[N], int (*copy_to)[N])
 {
     for (int i = 0; i < N; i++)
     {
@@ -18,6 +18,9 @@ void copy_maze(int matrix[N][N], int copy_to[N][N])
 }
 
 void getPatternMaze(int maze[N][N]){
+    copy_maze(maze_sizeof_1024, maze);
+
+    /*
     if (Size == 64){
         copy_maze(maze_sizeof_64, maze);
     }
@@ -29,5 +32,6 @@ void getPatternMaze(int maze[N][N]){
     }
     else if (Size == 2048){
         copy_maze(maze_sizeof_2048, maze);
-    }
+    }*/
+
 }

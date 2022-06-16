@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "pattern_controller.c"
 #include "maze-resolution.c"
+#include "mpi_utils.c"
 
 int main(void)
 {
@@ -14,6 +15,7 @@ int main(void)
     omp_set_num_threads(n_threads);
 
     int (*matrix)[N] = malloc(sizeof(int[N][N]));
+    // copy_maze(maze_sizeof_1024, matrix);
     copy_maze(maze_sizeof_1024, matrix);
 
 
@@ -29,7 +31,7 @@ int main(void)
             int choice = -1;
             scanf(" %d", &choice);
         }
-        omp_step(matrix);
+        ompStep(matrix);
         //printf("After %d° step \n", num_steps + 1);
         //print_matrix(matrix);
         num_steps++;
