@@ -190,7 +190,7 @@ def random_maze_generator(r, c, P0, Pf):
   
 # Driver code
 if __name__ == "__main__":
-    N = 2048
+    N = 256
     P0 = (randint(0, 5), N - (N // randint(8, 10)))
     P1 = (N-1, 1)
     maze = random_maze_generator(N, N, P0, P1)

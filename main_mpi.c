@@ -60,7 +60,6 @@ int main(int argc, char **argv)
             {
                 dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
                 MPI_Send(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
-                free(dataChunk);
             }
             
             // Recebe chunks já calculados de volta
@@ -73,9 +72,11 @@ int main(int argc, char **argv)
                 writeToMatrix(matrix, dataChunk, nElem, payloadBoundaries);// Junta chunks em matrix
             }
 
+        
             num_steps++;
             stopSteps = iterations_finished(matrix, num_steps);
             MPI_Bcast(&stopSteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            free(dataChunk);
         }
 
         endtime = MPI_Wtime();
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
         while (!stopSteps)
         {           
             MPI_Recv(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            mpiStep(dataChunk, rank, size);      
+            mpiStep(dataChunk, rank, size);    
             MPI_Send(dataChunk, nElem, MPI_INT, 0, 0, MPI_COMM_WORLD); // devolver ao processo original
             MPI_Bcast(&stopSteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
         }

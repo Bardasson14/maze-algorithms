@@ -1,4 +1,3 @@
-
 #define Size 1024
 #define N (Size+2)
 
