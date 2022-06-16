@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
 
   int (*matrix)[N] = malloc(sizeof(int[N][N]));
-  copy_maze(maze_sizeof_1024, matrix);
+  copy_maze(maze_sizeof_256, matrix);
 
   //getPatternMaze(matrix); - TODO: ajustar
 
@@ -19,13 +19,8 @@ int main(int argc, char **argv)
 
   int start = clock();
 
-  while (maze_sizeof_1024[N - 2][1] != Goal && num_steps < MAX_STEPS)
+  while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
   {
-    if (DEBUG){
-        printf("Continue? (0 == exit)\n\n");
-        int choice = -1;
-        scanf(" %d", &choice);
-    }
     seqStep(matrix);
     // printf("After %d° step \n", num_steps + 1);
     // print_matrix(matrix);

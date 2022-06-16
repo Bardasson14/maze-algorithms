@@ -207,7 +207,7 @@ void copyChunk(int **write_into, int *dataChunk, int rows)
         for (int j = 0; j < N; j++)
         {
             index = getIndex(i,j);
-            dataChunk[index] = write_into[index];
+            dataChunk[index] = write_into[i][j];
         }
     }
 }
@@ -365,23 +365,27 @@ void mpiStep(int *dataChunk, int rank, int size)
     int rows = payloadBoundaries[1]-payloadBoundaries[0]+3;
     int cols = N;
 
+
     int **write_into = (int**)malloc(rows*sizeof(int*));
+    write_into[0] = (int *)malloc(N * sizeof(int));
+    write_into[rows-1] = (int *)malloc(N * sizeof(int));
+
     for(int i = 1; i < rows-1; i++) {
         write_into[i] = (int *)malloc(N * sizeof(int));
         for (int j=1; j < N-1; j++) {
             Vector2 pos;
             pos.x = i;
             pos.y = j;
-            write_into[i][j] = evaluateStepMPI(dataChunk, pos, dataChunk[getIndex(i, j)]);;
+            write_into[i][j] = evaluateStepMPI(dataChunk, pos, dataChunk[getIndex(i, j)]);
+            
         }
     } 
 
     copyChunk(write_into, dataChunk, rows);
 
-    for(int i = 0; i < rows; i++){
+    for(int i = 1; i < rows-1; i++){
         free(write_into[i]);
     }
     free(write_into);
 
-    //printf("copiou chunk em %d\n", rank);
 }
