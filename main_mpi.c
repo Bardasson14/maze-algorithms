@@ -36,7 +36,9 @@ int main(int argc, char **argv)
     {
 
         int matrix[N][N];
-        copy_maze(maze_sizeof_1024, matrix);
+        copy_maze(maze_sizeof_8, matrix);
+        printf("MATRIZ INICIAL: \n");
+        print_matrix(matrix);
         num_steps = 0;
 
         starttime = MPI_Wtime();
@@ -58,31 +60,35 @@ int main(int argc, char **argv)
             // Divide matrix atual para os workers
             for (int i = 1; i < size; i++)
             {
-                dataChunk = fillChunk(matrix, dataChunk, payloadBoundaries);
+                dataChunk = fillChunk(matrix, dataChunk, rankBoundaries[i]);
                 MPI_Send(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD);
+                free(dataChunk);
             }
             
             // Recebe chunks já calculados de volta
             for (int i = 1; i < size; i++)
             {
+                dataChunk = (int *)malloc(nElem * sizeof(int));
                 payloadBoundaries[0] = rankBoundaries[i][0]; // start row
                 payloadBoundaries[1] = rankBoundaries[i][1]; // end row
                 nElem = calculateTotalChunkSize(payloadBoundaries);
                 MPI_Recv(dataChunk, nElem, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 writeToMatrix(matrix, dataChunk, nElem, payloadBoundaries);// Junta chunks em matrix
+                free(dataChunk);
             }
 
         
             num_steps++;
             stopSteps = iterations_finished(matrix, num_steps);
             MPI_Bcast(&stopSteps, 1, MPI_INT, 0, MPI_COMM_WORLD);
-            free(dataChunk);
         }
 
         endtime = MPI_Wtime();
         total_time = endtime - starttime;
         printf("ELAPSED TIME(MPI) %f sec\n", total_time);
         printf("TOTAL STEPS: %d\n", num_steps);
+        printf("MATRIZ FINAL: \n");
+        print_matrix(matrix);
     }
     
     else
