@@ -16,13 +16,14 @@ int main(void)
 
     int (*matrix)[N] = malloc(sizeof(int[N][N]));
     // copy_maze(maze_sizeof_1024, matrix);
-    copy_maze(maze_sizeof_1024, matrix);
+    copy_maze(maze_sizeof_8, matrix);
 
 
     int num_steps = 0;
     printf("Maze with size: %d\n", Size);
     //printf("Initial matrix \n");
-    //print_matrix(matrix);
+    printf("MATRIZ INICIAL: \n");
+    print_matrix(matrix);
     double startOMP = omp_get_wtime();
     while (matrix[N - 2][1] != Goal && num_steps < MAX_STEPS)
     {
@@ -43,4 +44,7 @@ int main(void)
     //print_matrix(matrix);
     printf("ELAPSED TIME(OMP) %f sec\n", endOMP - startOMP);
     printf("TOTAL STEPS: %d\n", num_steps);
+
+    printf("MATRIZ FINAL: \n");
+    print_matrix(matrix);
 }

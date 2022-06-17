@@ -1,5 +1,6 @@
 #include "constants.h"
 #include <stdio.h>
+#include "./patterns/pattern-8.c"
 #include "./patterns/pattern-64.c"
 #include "./patterns/pattern-128.c"
 #include "./patterns/pattern-256.c"

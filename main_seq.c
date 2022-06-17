@@ -8,12 +8,15 @@ int main(int argc, char **argv)
 {
 
   int (*matrix)[N] = malloc(sizeof(int[N][N]));
-  copy_maze(maze_sizeof_256, matrix);
+  copy_maze(maze_sizeof_8, matrix);
 
   //getPatternMaze(matrix); - TODO: ajustar
 
   int num_steps = 0;
   printf("Maze with size: %d\n", Size);
+  printf("MATRIZ INICIAL:\n");
+  print_matrix(matrix);
+
   //printf("Initial matrix \n");
   //print_matrix(matrix);
 
@@ -36,4 +39,8 @@ int main(int argc, char **argv)
 
   printf("ELAPSED TIME: %lf s\n", cpu_time_used);
   printf("TOTAL STEPS: %d\n", num_steps);
+
+  printf("MATRIZ FINAL:\n");
+  print_matrix(matrix);
+
 }

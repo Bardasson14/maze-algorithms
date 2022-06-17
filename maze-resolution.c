@@ -100,7 +100,7 @@ int down_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 int upper_right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
 {
     if (dataChunk != NULL) {
-        if (dataChunk[getIndex(pos.x+1, pos.y)] == type) {
+        if (dataChunk[getIndex(pos.x-1, pos.y+1)] == type) {
             return 1;
         }
         else {
@@ -109,7 +109,7 @@ int upper_right_is(int (*matrix)[N], int *dataChunk, Vector2 pos, int type)
     }
 
     else {
-        if (matrix[pos.x+1][pos.y] == type)
+        if (matrix[pos.x-1][pos.y+1] == type)
             return 1;
         else
             return 0;
@@ -372,7 +372,7 @@ void mpiStep(int *dataChunk, int rank, int size)
 
     for(int i = 1; i < rows-1; i++) {
         write_into[i] = (int *)malloc(N * sizeof(int));
-        for (int j=1; j < N-1; j++) {
+        for (int j=0; j < N; j++) {
             Vector2 pos;
             pos.x = i;
             pos.y = j;

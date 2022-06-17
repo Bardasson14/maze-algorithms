@@ -1,4 +1,4 @@
-#define Size 1024
+#define Size 8
 #define N (Size+2)
 
 #define Black 0
