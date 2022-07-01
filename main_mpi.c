@@ -5,8 +5,6 @@
 #include "mpi_utils.c"
 #include "maze-resolution.c"
 
-// TODO: liberar memória ao final
-
 int main(int argc, char **argv)
 {
     // Inicia MPI
@@ -36,7 +34,7 @@ int main(int argc, char **argv)
     {
 
         int matrix[N][N];
-        copy_maze(maze_sizeof_8, matrix);
+        copy_maze(maze_sizeof_512, matrix);
         printf("MATRIZ INICIAL: \n");
         print_matrix(matrix);
         num_steps = 0;
@@ -85,10 +83,11 @@ int main(int argc, char **argv)
 
         endtime = MPI_Wtime();
         total_time = endtime - starttime;
-        printf("ELAPSED TIME(MPI) %f sec\n", total_time);
-        printf("TOTAL STEPS: %d\n", num_steps);
         printf("MATRIZ FINAL: \n");
         print_matrix(matrix);
+        printf("ELAPSED TIME(MPI) %f sec\n", total_time);
+        printf("TOTAL STEPS: %d\n", num_steps);
+        printf("GOAL: %d\n", matrix[N-2][1]);
     }
     
     else

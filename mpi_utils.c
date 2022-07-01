@@ -6,24 +6,8 @@ int getIndex(int i, int j)
     return i * N + j;
 }
 
-// 0 1 2
-// 3 4 5
-// 6 7 8
-
-// M = 3x3
-// 3 threads
-// 7/3 = 2
-// 7%3 = 1
-
-// OBS.: Manter operações aritméticas por meio de funções
 void calculatePayloadBoundaries(int rank, int nWorkers, int payloadBoundariesMatrix[2])
 {
-    // FORMATO
-    // [
-    //  [i_inicial, j_inicial],
-    //  [i_final, j_final],
-    // ]
-
     int chunkSize, contiguousStart, startRow = 1, finalRow = Size, smallerChunk;
     div_t output;
 
@@ -52,9 +36,9 @@ void calculatePayloadBoundaries(int rank, int nWorkers, int payloadBoundariesMat
         chunkSize = smallerChunk;
     }
 
-    if (rank == nWorkers) // último processo com menos dados para tratar (Size%nThreads !=0)
+    if (rank == nWorkers)
     {
-        finalRow = Size; // [1023]
+        finalRow = Size;
     }
     else
     {

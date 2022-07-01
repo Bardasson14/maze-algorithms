@@ -239,7 +239,7 @@ void print_matrix(int (*matrix)[N])
 }
 
 
-int evaluateStepMPI(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
+int evaluateStepMPI(int *dataChunk, Vector2 pos, int it_is)
 {
 
     if (it_is == Black)
@@ -270,7 +270,7 @@ int evaluateStepMPI(int *dataChunk, Vector2 pos, int it_is) // TODO: verificar s
     return it_is;
 }
 
-int evaluateStep(int (*matrix)[N], Vector2 pos, int it_is) // TODO: verificar se outros métodos permanecem ok
+int evaluateStep(int (*matrix)[N], Vector2 pos, int it_is)
 {
 
     if (it_is == Black)
@@ -329,19 +329,12 @@ void ompStep(int (*matrix)[N])
     int thread_id, n_threads;
     #pragma omp parallel shared(matrix, write_into) // collapse(2)
     {
-        //int id = omp_get_thread_num();
         int i = 1, j = 1;
         #pragma omp for schedule(auto) private(i, j)
         for (i = 1; i < N - 1; i++)
         {
             for (j = 1; j < N - 1; j++)
             {
-
-                //thread_id = omp_get_thread_num();
-                // n_threads = omp_get_num_threads();
-
-                //printf("\nCHECAGEM FEITA NA THREAD: %d\n", thread_id);
-
                 Vector2 pos;
                 pos.x = i;
                 pos.y = j;
@@ -349,7 +342,6 @@ void ompStep(int (*matrix)[N])
                 write_into[i][j] = evaluateStep(matrix, pos, matrix[i][j]);
             }
         }
-        //printf("\nSTARTING COPY\n");
         copy_matrix(write_into, matrix);
     }
 }
